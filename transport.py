@@ -95,15 +95,15 @@ class Trip:
             except: self.DOText = dat['provenance']
 
             try:
-                try: self.when = dat['when']
-                except: self.when = dat['plannedWhen']
-                try: self.plannedWhen = dat['when']
-                except: self.plannedWhen = dat['plannedWhen']
+                if dat['when']: self.when = dat['when']
+                else: self.when = dat['plannedWhen']
+                if dat['when']: self.plannedWhen = dat['when']
+                else: self.plannedWhen = dat['plannedWhen']
                 try:
-                    try: self.platform = dat['platform']
-                    except: self.platform = dat['plannedPlatform']
-                    try: self.plannedPlatform = dat['plannedPlatform']
-                    except: self.plannedPlatform = dat['platform']
+                    if dat['platform']: self.platform = dat['platform']
+                    else: self.platform = dat['plannedPlatform']
+                    if dat['plannedPlatform']: self.plannedPlatform = dat['plannedPlatform']
+                    else: self.plannedPlatform = dat['platform']
                 except: pass
             except: pass
 
