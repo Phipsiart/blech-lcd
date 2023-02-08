@@ -15,43 +15,61 @@ def sers():
 class Lcdtext:
     def __init__(self, text:str) -> None:
         self.dotext=True
-        self.text=text
+        #line 1 of the LCD Display
+        self.textLeft ="Train Line"
+        self.textMid = "destination"
+        self.text = self.textMid
+        #line 2 of the LCD Display
+        self.textLeftBottom = "when"
+        self.textRightBottom = "platform_number"
         #self.scheduler.add_job(self.long_string, 'interval', seconds=1, id="text")
         self.scheduler = BackgroundScheduler()
-        self.duration = int((len(self.text)-16)*0.40)+3
+        self.firstlinescrolltextmaxlength = 16 - (len(self.textLeft) + 1)
+        print(self.firstlinescrolltextmaxlength)
+        self.duration = int((len(self.text)- self.firstlinescrolltextmaxlength)*0.40)+3
         print(self.duration)
         self.scheduler.add_job(self.long_string, 'interval', seconds=self.duration)
         self.long_string()
         self.scheduler.start()
-        
+        #Background job for Line 2, for example platform and when the train arrives
+        self.scheduler2 = BackgroundScheduler()
+        self.scheduler2.add_job(self.statusline2, id="statusline2")
+        self.statusline2()
+        self.scheduler2.start()
+
 
 
     def long_string(self):
-        """ 
-        Parameters: (driver, string to print, number of line to print, number of columns of your display)
-        Return: This function send to display your scrolling string.
-        """
-        num_line=1
-        num_cols=16
-        if len(self.text) > num_cols:
-            display.lcd_display_string(self.text[:num_cols], num_line)
-            for i in range(len(self.text) - num_cols + 1):
-                text_to_print = self.text[i:i+num_cols]
-                display.lcd_display_string(text_to_print, num_line)
-                time.sleep(0.4)
         
-        else:
-            display.lcd_display_string(self.text, num_line)
-
-
+        self.destinationtripcharacterlength = len(self.textMid)
+        if (len(self.textMid) > self.firstlinescrolltextmaxlength):
+            num_line=1
+            num_cols=self.firstlinescrolltextmaxlength
+            if len(self.text) > self.firstlinescrolltextmaxlength:
+                display.lcd_display_string(self.text[:num_cols], num_line)
+                for i in range(len(self.text)   - num_cols + 1):
+                    text_to_print = self.text[i:i+num_cols]
+                    self.firstline = f'{self.textLeft} {text_to_print}'
+                    display.lcd_display_string(self.firstline ,1)
+                    time.sleep(0.4)
+            
+        if (self.destinationtripcharacterlength < 11):
+                display.lcd_display_string(f'{self.textLeft} {self.textMid}', 1)
 
     
     def stop(self):
         self.scheduler.remove_job("text")
-
-
-
-infotext_sers = Lcdtext("Hallo")
+    def statusline2(self):
+        self.statusstringtest = self.textLeftBottom
+        self.statusline2length = len(self.textLeftBottom) + len(self.textRightBottom)
+        print(self.statusline2length)
+        self.calculateremainingspaces = 16 - self.statusline2length + len(self.textLeftBottom)
+        self.statusstringfinal = f'{self.textLeftBottom.ljust(self.calculateremainingspaces)}{self.textRightBottom}'
+        display.lcd_display_string(self.statusstringfinal, 2)
+        
+    def stopstatusline2(self):
+        self.scheduler2.remove_job("statusline2")
+infotext_sers = Lcdtext("")
 
 while True:
     time.sleep(1)
