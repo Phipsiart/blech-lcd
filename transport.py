@@ -95,15 +95,15 @@ class Trip:
             except: self.DOText = dat['provenance']
 
             try:
-                try: self.when = dat['when']
-                except: self.when = dat['plannedWhen']
-                try: self.plannedWhen = dat['when']
-                except: self.plannedWhen = dat['plannedWhen']
+                if dat['when']: self.when = dat['when']
+                else: self.when = dat['plannedWhen']
+                if dat['when']: self.plannedWhen = dat['when']
+                else: self.plannedWhen = dat['plannedWhen']
                 try:
-                    try: self.platform = dat['platform']
-                    except: self.platform = dat['plannedPlatform']
-                    try: self.plannedPlatform = dat['plannedPlatform']
-                    except: self.plannedPlatform = dat['platform']
+                    if dat['platform']: self.platform = dat['platform']
+                    else: self.platform = dat['plannedPlatform']
+                    if dat['plannedPlatform']: self.plannedPlatform = dat['plannedPlatform']
+                    else: self.plannedPlatform = dat['platform']
                 except: pass
             except: pass
 
@@ -233,9 +233,24 @@ class Line:
             self.name = self.lineData['name']
             self.productName = self.lineData['productName']
             self.productType = self.lineData['product']
+            self.number = ""
+            for char in reversed(self.name):
+                if char.isdigit():
+                    self.number = char + self.number
+                else:
+                    if self.number:
+                        break
+            self.shortName = self.getShortName()
+            
         except:
             print(f"Error: Line {self.id} seems to have corrupt data")
             return
+        
+    def getShortName(self) -> str:
+        # TODO: Mehr Sonderfälle für andere Zuggattungen
+        if self.name.startswith("BRB"): return self.name.split(' ')[1]
+        elif self.name.startswith("ICE"): return "ICE"
+        else: return self.name.replace(' ', '')
 
 
 class Station:
@@ -329,6 +344,14 @@ class Stop:
 
 
         self.trips = sorted(trips, key=lambda x: x.departureString)
+
+    def getDepartures(self):
+        apidata = requests.get(f"{instance}/stops/{self.id}/departures{params}").json()
+        departures = []
+        for i in apidata['departures']:
+            departures.append(Trip(None, False, self, i, 'departure'))
+        self.departures = departures
+
 
 
 class TripStop:
