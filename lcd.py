@@ -53,7 +53,7 @@ class Lcdtext:
                     display.lcd_display_string(self.firstline ,1)
                     time.sleep(0.4)
             
-        if (self.destinationtripcharacterlength < 11):
+        if (self.destinationtripcharacterlength < self.firstlinescrolltextmaxlength):
                 display.lcd_display_string(f'{self.textLeft} {self.textMid}', 1)
 
     
