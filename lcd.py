@@ -24,9 +24,9 @@ class Lcdtext:
         self.textRightBottom = "platform_number"
         #self.scheduler.add_job(self.long_string, 'interval', seconds=1, id="text")
         self.scheduler = BackgroundScheduler()
-        self.firstlinescrolltextmaxlength = 16 - (len(self.textLeft) + 1)
-        print(self.firstlinescrolltextmaxlength)
-        self.duration = int((len(self.text)- self.firstlinescrolltextmaxlength)*0.40)+3
+        self.firstLineScrollTextMaxLength = 16 - (len(self.textLeft) + 1)
+        print(self.firstLineScrollTextMaxLength)
+        self.duration = int((len(self.text) - self.firstLineScrollTextMaxLength) * 0.40) + 3
         print(self.duration)
         self.scheduler.add_job(self.long_string, 'interval', seconds=self.duration)
         self.long_string()
@@ -41,31 +41,31 @@ class Lcdtext:
 
     def long_string(self):
         
-        self.destinationtripcharacterlength = len(self.textMid)
-        if (len(self.textMid) > self.firstlinescrolltextmaxlength):
+        self.destinationTripCharacterLength = len(self.textMid)
+        if (len(self.textMid) > self.firstLineScrollTextMaxLength):
             num_line=1
-            num_cols=self.firstlinescrolltextmaxlength
-            if len(self.text) > self.firstlinescrolltextmaxlength:
+            num_cols=self.firstLineScrollTextMaxLength
+            if len(self.text) > self.firstLineScrollTextMaxLength:
                 display.lcd_display_string(self.text[:num_cols], num_line)
                 for i in range(len(self.text)   - num_cols + 1):
                     text_to_print = self.text[i:i+num_cols]
-                    self.firstline = f'{self.textLeft} {text_to_print}'
-                    display.lcd_display_string(self.firstline ,1)
+                    self.firstLine = f'{self.textLeft} {text_to_print}'
+                    display.lcd_display_string(self.firstLine, 1)
                     time.sleep(0.4)
             
-        if (self.destinationtripcharacterlength < 11):
+        if (self.destinationTripCharacterLength < 11):
                 display.lcd_display_string(f'{self.textLeft} {self.textMid}', 1)
 
     
     def stop(self):
         self.scheduler.remove_job("text")
     def statusline2(self):
-        self.statusstringtest = self.textLeftBottom
-        self.statusline2length = len(self.textLeftBottom) + len(self.textRightBottom)
-        print(self.statusline2length)
-        self.calculateremainingspaces = 16 - self.statusline2length + len(self.textLeftBottom)
-        self.statusstringfinal = f'{self.textLeftBottom.ljust(self.calculateremainingspaces)}{self.textRightBottom}'
-        display.lcd_display_string(self.statusstringfinal, 2)
+        self.statusStringTest = self.textLeftBottom
+        self.statusLine2Length = len(self.textLeftBottom) + len(self.textRightBottom)
+        print(self.statusLine2Length)
+        self.remainingSpace = 16 - self.statusLine2Length + len(self.textLeftBottom)
+        self.statusStringFinal = f'{self.textLeftBottom.ljust(self.remainingSpace)}{self.textRightBottom}'
+        display.lcd_display_string(self.statusStringFinal, 2)
         
     def stopstatusline2(self):
         self.scheduler2.remove_job("statusline2")
