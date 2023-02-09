@@ -1,75 +1,86 @@
-import drivers
+import lcddrivers
 import time
+import datetime
 from threading import Thread
-from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.schedulers.background import BackgroundScheduler, BlockingScheduler
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from apscheduler.executors.pool import ProcessPoolExecutor
-
-display = drivers.Lcd()
-
-def sers():
-    print("sers")
+display = lcddrivers.Lcd()
 
 
+def clearDisplay():
+    display.lcd_clear()
 
 class Lcdtext:
-    def __init__(self, text:str) -> None:
-        self.dotext=True
-        #line 1 of the LCD Display
-        self.textLeft ="Train Line"
-        self.textMid = "destination"
-        self.text = self.textMid
-        #line 2 of the LCD Display
-        self.textLeftBottom = "when"
-        self.textRightBottom = "platform_number"
-        #self.scheduler.add_job(self.long_string, 'interval', seconds=1, id="text")
-        self.scheduler = BackgroundScheduler()
-        self.firstLineScrollTextMaxLength = 16 - (len(self.textLeft) + 1)
-        print(self.firstLineScrollTextMaxLength)
-        self.duration = int((len(self.text) - self.firstLineScrollTextMaxLength) * 0.40) + 3
-        print(self.duration)
-        self.scheduler.add_job(self.long_string, 'interval', seconds=self.duration)
-        self.long_string()
-        self.scheduler.start()
-        #Background job for Line 2, for example platform and when the train arrives
-        self.scheduler2 = BackgroundScheduler()
-        self.scheduler2.add_job(self.statusline2, id="statusline2")
-        self.statusline2()
-        self.scheduler2.start()
-
-
-
-    def long_string(self):
+    def __init__(self, line: int = 1, textLeft: str = "", textMid: str = "", textRight: str = "", runningTextAllowed = True) -> None:
+        self.textLeft = textLeft
+        self.textMid = textMid
+        self.textRight = textRight
+        self.line = line
+        self.num_cols = 16
         
-        self.destinationTripCharacterLength = len(self.textMid)
-        if (len(self.textMid) > self.firstLineScrollTextMaxLength):
-            num_line=1
-            num_cols=self.firstLineScrollTextMaxLength
-            if len(self.text) > self.firstLineScrollTextMaxLength:
-                display.lcd_display_string(self.text[:num_cols], num_line)
-                for i in range(len(self.text)   - num_cols + 1):
-                    text_to_print = self.text[i:i+num_cols]
-                    self.firstLine = f'{self.textLeft} {text_to_print}'
-                    display.lcd_display_string(self.firstLine, 1)
-                    time.sleep(0.4)
-            
-        if (self.destinationTripCharacterLength < 11):
-                display.lcd_display_string(f'{self.textLeft} {self.textMid}', 1)
+        doRunningText = False
+        if len(self.textLeft) + len(self.textMid) + len(self.textRight) + 2 > self.num_cols and runningTextAllowed:
+            doRunningText = True
+        else:
+            if self.textMid == "":
+                self.textMid = " "
+                for i in range(self.num_cols-(len(self.textLeft)+len(self.textRight)+3)): self.textMid = self.textMid + " "
+            string = ""
+            if textLeft: string += textLeft
+            if textMid: 
+                if textLeft: string += f' {textMid}'
+                else: string = textMid
+            if textRight:
+                if textMid or textLeft: string += f' {textMid}'
+                else: string = textRight
+            displayString(f'{self.textLeft} {self.textMid} {self.textRight}', self.line)
 
+        if doRunningText:
+            self.doRunningText = True
+            self.textMid += "   " + self.textMid
+            #self.scheduler = BlockingScheduler()
+            self.duration = round(len(self.textMid)*0.35)
+            self.thread = Thread(target=self.doText)
+            self.thread.start()
+        else:
+            self.doRunningText = False
+        
     
-    def stop(self):
-        self.scheduler.remove_job("text")
-    def statusline2(self):
-        self.statusStringTest = self.textLeftBottom
-        self.statusLine2Length = len(self.textLeftBottom) + len(self.textRightBottom)
-        print(self.statusLine2Length)
-        self.remainingSpace = 16 - self.statusLine2Length + len(self.textLeftBottom)
-        self.statusStringFinal = f'{self.textLeftBottom.ljust(self.remainingSpace)}{self.textRightBottom}'
-        display.lcd_display_string(self.statusStringFinal, 2)
-        
-    def stopstatusline2(self):
-        self.scheduler2.remove_job("statusline2")
-infotext_sers = Lcdtext("")
+    def doText(self):
+        while self.doRunningText:
+            try:
+                textMidLength = self.num_cols - (len(self.textLeft) + len(self.textRight))
+                if self.textLeft: textMidLength-=1
+                if self.textRight: textMidLength-=1
+                for i in range(int(len(self.textMid)/2 + 3)):
+                    if self.doRunningText == False: break
+                    tTextMid = self.textMid[i:i+textMidLength]
+                    displayString(f'{self.textLeft} {tTextMid} {self.textRight}', self.line)
+                    time.sleep(0.35)
+                time.sleep(2)
+            except KeyboardInterrupt: display.lcd_clear()
 
-while True:
-    time.sleep(1)
+    def stop(self):
+        if self.doRunningText:
+            self.doRunningText = False
+            self.thread.join()
+            del self.thread
+        displayString(" " * self.num_cols, self.line)
+
+class Attention:
+    def __init__(self, display: lcddrivers.Lcd, times: int = 3, dur: float = 0.3):
+        self.display = display
+        for i in range(times):
+            self.display.lcd_backlight(0)
+            time.sleep(dur)
+            self.display.lcd_backlight(1)
+            time.sleep(dur)
+
+def displayString(string, line):
+    print(f"[{line}] {string}")
+    try: display.lcd_display_string(string, line)
+    except KeyboardInterrupt: display.lcd_clear()
+
+def getDebugTime():
+    return datetime.datetime.now().strftime("[%H:%M:%S]")

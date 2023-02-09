@@ -221,9 +221,8 @@ class Information(Announcement):
         self.queque = []
         self.stop = stop
         self.trip = trip
-        match infoType:
-            case 'delay':
-                self.doDelayAnnouncement()
+        if infoType == 'delay':
+            self.doDelayAnnouncement()
         play_wav_files(self.queque)
 
     def doDelayAnnouncement(self):
