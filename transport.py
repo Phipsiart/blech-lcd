@@ -156,6 +156,17 @@ class Trip:
                 self.isArrival = None
         except: pass
 
+    def getOrigin(self):
+
+        url = f'{instance}/trips/{self.tripId}'
+        try:
+            self.tripData = requests.get(url).json()['trip']
+        except:
+            print("wrong tripid or something")
+            return
+        self.origin = Stop(None, False, self.tripData['origin'])
+
+
     def getVia(self, startStopId: str):
         if self.stopoverStops is None or self.stopoverStops == []:
             self.getStopovers()
