@@ -5,7 +5,7 @@ from threading import Thread
 from apscheduler.schedulers.background import BackgroundScheduler, BlockingScheduler
 from apscheduler.jobstores.sqlalchemy import SQLAlchemyJobStore
 from apscheduler.executors.pool import ProcessPoolExecutor
-display = lcddrivers.Lcd()
+display = drivers.Lcd()
 
 
 def clearDisplay():
@@ -69,7 +69,7 @@ class Lcdtext:
         displayString(" " * self.num_cols, self.line)
 
 class Attention:
-    def __init__(self, display: lcddrivers.Lcd, times: int = 3, dur: float = 0.3):
+    def __init__(self, display: drivers.Lcd, times: int = 3, dur: float = 0.3):
         self.display = display
         for i in range(times):
             self.display.lcd_backlight(0)
@@ -78,7 +78,6 @@ class Attention:
             time.sleep(dur)
 
 def displayString(string, line):
-    print(f"[{line}] {string}")
     try: display.lcd_display_string(string, line)
     except KeyboardInterrupt: display.lcd_clear()
 

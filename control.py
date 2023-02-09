@@ -35,15 +35,11 @@ class main:
     def showTrip(self, trip: transport.Trip):
         print(f"{getDebugTime()} Showing Trip to {trip.destinationName}")
         inMinutes = datetime.datetime.fromisoformat(trip.when).replace(tzinfo=None)-datetime.datetime.now()
-        print(f' before: {inMinutes}')
         inMinutes = round(inMinutes.seconds / 60)
-        print(f' after: {inMinutes}')
         timeText = f"in {inMinutes} Min"
         if inMinutes < 1: timeText = "jetzt"
         
         self.line2 = lcd.Lcdtext(2, timeText, "", f"Gl {trip.platform}", False)
-        
-        #if self.line1: del self.line1
         self.line1 = lcd.Lcdtext(1, trip.line.shortName, f'nach {trip.destination.name}')
     
 
