@@ -126,6 +126,7 @@ class Announcement:
         stopIdToQueque = trip.destination.id
         if trip.destination.id == stop.id:
             queque.append(self.getGeneralBlocks("von"))
+            trip.getOrigin()
             stopIdToQueque = trip.origin.id
         else:
             queque.append(self.getGeneralBlocks("nach"))
@@ -283,6 +284,7 @@ def play_wav_files(files):
     stream.close()
     p.terminate()
 
+####### Just for testing purposes #######
 
 thisStop = Stop('8002347')
 thisStop.getTrips()
