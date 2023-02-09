@@ -3,6 +3,7 @@ import lcd
 import datetime
 import threading
 import time
+import announcements
 
 class main:
     def __init__(self, stopId: str = '8002348'):
@@ -27,9 +28,10 @@ class main:
                 self.line2.stop()
                 del self.line2
 
-                
             self.showTrip(self.stop.departures[0])
             time.sleep(30)
+
+            announcements.TrainPassageAnnouncement(3)
         
         
     def showTrip(self, trip: transport.Trip):
